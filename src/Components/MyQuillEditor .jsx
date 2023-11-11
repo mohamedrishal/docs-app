@@ -4,6 +4,7 @@ import 'react-quill/dist/quill.snow.css';
 
 function MyQuillEditor () {
     const [content, setContent] = useState('');
+    console.log(content);
 
     const handleChange = (value) => {
       setContent(value);

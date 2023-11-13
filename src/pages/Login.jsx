@@ -18,11 +18,15 @@ import DialogActions from "@mui/material/DialogActions";
 import CloseIcon from "@mui/icons-material/Close";
 import Stack from "@mui/material/Stack";
 
+import { useNavigate } from "react-router-dom";
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { auth } from "../config/firebase";
+
+import { auth, db } from "../config/firebase";
+import { addDoc, collection, getDocs, where } from "firebase/firestore";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
@@ -36,8 +40,13 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
-  const [password, setPassword] = useState();
-  const [email, setEmail] = useState();
+  const navigate = useNavigate();
+
+  const [userData, setUserData] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -51,29 +60,60 @@ function Login() {
     setOpen(true);
   };
 
+  const { username, email, password } = userData;
+
+  // register
   const handleRegisterSubmit = async () => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const userid = userCredential.user.uid;
+
+      const channelCollectionRefTask = collection(db, "users");
+      await addDoc(channelCollectionRefTask, {
+        username: username,
+        email: email,
+        uid: userid,
+      });
+
       setOpen(false);
       alert(`Register successfully..`);
     } catch (err) {
       console.log(err);
+      setOpen(false);
     }
   };
 
+  // login
   const handleSignIn = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const userid = userCredential.user.uid;
+
+      const channelCollectionRefTask = collection(db, "users");
+
+      await getDocs(channelCollectionRefTask, where("uid", "==", userid));
+
       console.log(`login successfully...`);
+      navigate("/document");
+      alert(`${userid}`);
     } catch (err) {
-      console.log(err);
+      alert(`${err} `);
     }
   };
 
   return (
-    <div className="row container">
+    <div style={{ width: "100%" }} className="row">
       <div
-        style={{ borderRadius: "0% 0% 100% 0%", height: "97vh" }}
+        style={{ borderRadius: "0% 0% 100% 0%", height: "100vh" }}
         className="col bg-primary d-flex justify-content-center align-items-center px-0 "
       >
         <div className="me-5 mb-5 text-white">
@@ -112,17 +152,30 @@ function Login() {
               <Stack spacing={2} margin={2}>
                 <TextField
                   id="outlined-basic"
-                  label="Email"
-                  value={email}
+                  label="Username"
+                  value={userData.username}
                   variant="outlined"
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) =>
+                    setUserData({ ...userData, username: e.target.value })
+                  }
+                />
+                <TextField
+                  id="outlined-basic"
+                  label="Email"
+                  value={userData.email}
+                  variant="outlined"
+                  onChange={(e) =>
+                    setUserData({ ...userData, email: e.target.value })
+                  }
                 />
                 <TextField
                   id="outlined-basic"
                   label="Password"
-                  value={password}
+                  value={userData.password}
                   variant="outlined"
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) =>
+                    setUserData({ ...userData, password: e.target.value })
+                  }
                 />
               </Stack>
             </DialogContent>
@@ -143,16 +196,25 @@ function Login() {
         <div className="w-100 d-flex justify-content-center align-items-center flex-column ">
           <h1 className="text-center text-primary mb-3">Login</h1>
           <TextField
+            value={userData.email}
+            onChange={(e) =>
+              setUserData({ ...userData, email: e.target.value })
+            }
             className="w-75"
             id="outlined-basic"
             label="Enter a Username"
             variant="outlined"
+            helperText="Incorrect entry."
           />
           <FormControl className="w-75 mt-3" variant="outlined">
             <InputLabel htmlFor="outlined-adornment-password">
               Password
             </InputLabel>
             <OutlinedInput
+              value={userData.password}
+              onChange={(e) =>
+                setUserData({ ...userData, password: e.target.value })
+              }
               id="outlined-adornment-password"
               type={showPassword ? "text" : "password"}
               endAdornment={
@@ -168,6 +230,7 @@ function Login() {
                 </InputAdornment>
               }
               label="Password"
+              helperText="Incorrect entry."
             />
           </FormControl>
           <Button

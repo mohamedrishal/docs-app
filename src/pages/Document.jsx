@@ -97,6 +97,8 @@ function Document() {
 
   const contentChange = (value) => {
     setContent(value);
+    getTask();
+
   };
 
   const itemSelect =(id)=>{

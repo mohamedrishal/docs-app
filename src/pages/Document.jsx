@@ -58,6 +58,8 @@ function Document() {
     });
     setTaskName("");
     handleClose();
+    getTask();
+
   };
 
   // read
@@ -77,6 +79,8 @@ function Document() {
     const taskDoc = doc(userDocumentsCollection, id);
     await deleteDoc(taskDoc);
     alert(`Deleted ${name}..`)
+    getTask();
+
   };
   console.log(content);
 
@@ -86,6 +90,7 @@ function Document() {
     await updateDoc(taskDoc, {
       content: content,
     });
+    getTask();
     setSave(false);
     alert(`Updated...`)
   };
@@ -97,16 +102,17 @@ function Document() {
   const itemSelect =(id)=>{
     setItemId(id)
     setSave(true)
+    getTask();
   }
 
   useEffect(() => {
     getTask();
-  });
+  },[]);
 
   return (
     <div>
       <div style={{width:"100%",height:'100%',backgroundColor: "#ececff"}} className="row">
-        <div style={{backgroundColor:"#f1f1f1"}} className="col-3 d-flex  justify-content-center align-items-center flex-column border shadow">
+        <div style={{backgroundColor:"#f1f1f1",height:"100vh"}} className="col-3 d-flex  justify-content-center align-items-center flex-column border shadow">
           <button
             style={{ height: "6rem", width: "6rem" }}
             onClick={handleOpen}

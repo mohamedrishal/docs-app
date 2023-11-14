@@ -16,6 +16,7 @@ import { TextField } from "@mui/material";
 
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import UserProfile from "../Components/UserProfile";
 
 const style = {
   position: "absolute",
@@ -53,7 +54,7 @@ function Document() {
 
     await addDoc(userDocumentsCollection, {
       taskname: taskName,
-      content: content,
+      content: " ",
     });
     setTaskName("");
     handleClose();
@@ -61,7 +62,7 @@ function Document() {
 
   // read
   const getTask = async () => {
-
+   
     const data = await getDocs(userDocumentsCollection);
     console.log(data);
     const filleterdData = data.docs.map((doc) => ({
@@ -116,6 +117,8 @@ function Document() {
 
             {/* modal */}
           </button>
+
+          <UserProfile/>
 
           <hr className="text-dark w-100 fw-bolder" />
 

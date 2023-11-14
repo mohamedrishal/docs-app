@@ -82,9 +82,24 @@ function Login() {
 
       setOpen(false);
       alert(`Register successfully..`);
-    } catch (err) {
-      console.log(err);
-      setOpen(false);
+    } catch (error) {
+      let errorMessage = "Error registering user:";
+
+      switch (error.code) {
+        case "auth/invalid-email":
+          errorMessage = "Invalid email address.";
+          break;
+        case "auth/weak-password":
+          errorMessage = "Password must be at least 6 characters.";
+          break;
+        case "auth/email-already-in-use":
+          errorMessage = "Email address is already in use.";
+          break;
+        default:
+          errorMessage += ` ${error.message}`;
+      }
+
+      alert(errorMessage);
     }
   };
 
@@ -101,20 +116,26 @@ function Login() {
       const channelCollectionRefTask = collection(db, "users");
 
       await getDocs(channelCollectionRefTask, where("uid", "==", userid));
-
       console.log(`login successfully...`);
       navigate("/document");
-      alert(`${userid}`);
     } catch (err) {
-      alert(`${err} `);
+      if (err.message === "Quota exceeded.") {
+        alert("Server Busy..! Try Again");
+      } else {
+        alert("Invalid Username or Password!");
+      }
     }
   };
 
   return (
     <div style={{ width: "100%" }} className="row">
       <div
-        style={{ borderRadius: "0% 0% 100% 0%", height: "100vh" }}
-        className="col bg-primary d-flex justify-content-center align-items-center px-0 "
+        style={{
+          borderRadius: "0% 0% 100% 0%",
+          height: "100vh",
+          fontFamily: "Agbalumo",
+        }}
+        className="col bg-primary fs-4 d-flex justify-content-center align-items-center px-0 "
       >
         <div className="me-5 mb-5 text-white">
           <h1 className="text-center mb-3">Register</h1>
@@ -138,7 +159,7 @@ function Login() {
             </DialogTitle>
             <IconButton
               aria-label="close"
-              onClick={handleRegisterSubmit}
+              onClick={() => setOpen(false)}
               sx={{
                 position: "absolute",
                 right: 8,
@@ -204,7 +225,6 @@ function Login() {
             id="outlined-basic"
             label="Enter a Username"
             variant="outlined"
-            helperText="Incorrect entry."
           />
           <FormControl className="w-75 mt-3" variant="outlined">
             <InputLabel htmlFor="outlined-adornment-password">
@@ -230,7 +250,6 @@ function Login() {
                 </InputAdornment>
               }
               label="Password"
-              helperText="Incorrect entry."
             />
           </FormControl>
           <Button
